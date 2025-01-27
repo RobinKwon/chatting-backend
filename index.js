@@ -22,7 +22,13 @@ const openai = new OpenAI({
 //     credentials: true
 // }
 // app.use(cors(corsOptions));
-app.use(cors());                //250127_1210:all received
+
+//250127_1210:all received
+app.use(cors());
+// app.use(cors({
+//     origin: 'http://localhost:3000', // 실제 프론트엔드 서버 주소
+//     credentials: true
+// }));
 
 //express를 쓸때 사용.
 app.use(express.json())         // for parsing application/json
