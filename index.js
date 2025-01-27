@@ -1,27 +1,58 @@
 require('dotenv').config();
-const { Configuration, OpenAIApi } = require("openai");
-//const serverless = require('serverless-http');
+const OpenAI = require('openai');
 const express = require('express');
+const serverless = require('serverless-http');
 var cors = require('cors');
 const app = express();
+const PORT = 3000;
 
-const configuration = new Configuration({
+// Example user database (for demo purposes only)
+const users = [
+    { id: 'admin', password: '1234' },
+    { id: 'testuser', password: 'password123' }
+];
+
+const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-const openai = new OpenAIApi(configuration);
-
 //CORS 이슈 해결
-//let corsOptions = {
-//    origin: 'https://chatdoge123jocoding.pages.dev',
-//    credentials: true
-//}
-//app.use(cors(corsOptions));
-app.use(cors());                //express를 쓸때 사용.
+// let corsOptions = {
+//     origin: 'https://childhoodfriend.pages.dev',
+//     credentials: true
+// }
+// app.use(cors(corsOptions));
+app.use(cors());                //250127_1210:all received
 
-//POST 요청 받을 수 있게 만듬
-app.use(express.json()) // for parsing application/json
+//express를 쓸때 사용.
+app.use(express.json())         // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
+app.get('/', (req, res) => {
+    res.send("여기는 루트입니다.")});
+
+// Login endpoint
+app.post('/login', (req, res) => {
+    const { id, password } = req.body;
+
+    console.log('Received login request:', req.body);
+
+    // Find a user matching the provided id and password
+    const user = users.find(user => user.id === id && user.password === password);
+    if (user) {
+        console.log('return OK');
+        return res.status(200).json({
+            status: 'OK',
+            message: 'Login successful'
+        });
+    }
+    console.log('return ERROR');
+    // Invalid credentials
+    return res.status(401).json({
+        status: 'ERROR',
+        message: 'Invalid ID or password'
+    });
+});
 
 // POST method route
 app.post('/ChildhoodFriend', async function (req, res) {
@@ -51,14 +82,22 @@ app.post('/ChildhoodFriend', async function (req, res) {
     }
 
     const maxRetries = 3;
-    //let retries = 0;
+    let retries = 0;
     let completion
     while (retries < maxRetries) {
       try {
-        completion = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        //gpt-3.5-turbo
+        completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini-2024-07-18", // or your chosen model
           messages: messages
         });
+
+        //old version
+        //completion = await openai.createChatCompletion({
+        //  model: "gpt-4o-mini",   
+        //  messages: messages
+        //});
+
         break;
       } catch (error) {
         console.error("OpenAI API Error:", error.response ? error.response.data : error.message);
@@ -71,14 +110,19 @@ app.post('/ChildhoodFriend', async function (req, res) {
       }
     }
 
-    let fortune = completion.data.choices[0].message['content']
+    //console.log(completion);
+    //let fortune = completion.data.choices[0].message['content']
+    let fortune = completion.choices[0].message.content
 
     res.json({"assistant": fortune});
 });
 
+//module.exports = app;
+
+//aws
 //module.exports.handler = serverless(app);
-app.listen(3000, () => {
+
+//local test
+app.listen(PORT, () => {
     console.log("Server is running on port 3000");
-  });
-
-
+});
