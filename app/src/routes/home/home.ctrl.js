@@ -1,7 +1,8 @@
 "use strict";
 
-//const logger = require("./config/logger");
-const User = require("./models/User");
+const logger = require("../../config/logger");
+const User = require("../../models/User");
+const Friend = require("../../models/Friend");
 
 const output = {
   home: (req, res) => {
@@ -24,13 +25,11 @@ const process = {
   login: async (req, res) => {
     const user = new User(req.body);
     const response = await user.login();
-
     const url = {
       method: "POST",
       path: "/login",
       status: response.err ? 400 : 200,
     };
-
     log(response, url);
     return res.status(url.status).json(response);
   },
@@ -38,13 +37,23 @@ const process = {
   register: async (req, res) => {
     const user = new User(req.body);
     const response = await user.register();
-
     const url = {
       method: "POST",
       path: "/register",
       status: response.err ? 409 : 201,
     };
+    log(response, url);
+    return res.status(url.status).json(response);
+  },
 
+  childhoodfriend: async (req, res) => {
+    const friend = new Friend(req.body);
+    const response = await friend.childhoodfriend();
+    const url = {
+      method: "POST",
+      path: "/childhoodfriend",
+      status: response.err ? 400 : 200,
+    };
     log(response, url);
     return res.status(url.status).json(response);
   },
@@ -55,3 +64,16 @@ module.exports = {
   process,
 };
 
+const log = (response, url) => {
+  if (response.err) {
+    logger.error(
+      `${url.method} ${url.path} ${url.status} Response: ${response.success} ${response.err}`
+    );
+  } else {
+    logger.info(
+      `${url.method} ${url.path} ${url.status} Response: ${response.success} ${
+        response.message || ""
+      }`
+    );
+  }
+};
