@@ -46,6 +46,18 @@ const process = {
     return res.status(url.status).json(response);
   },
 
+  getbirth: async (req, res) => {
+    const user = new User(req.body);
+    const response = await user.getbirth();
+    const url = {
+      method: "POST",
+      path: "/getbirth",
+      status: response.err ? 400 : 200,
+    };
+    log(response, url);
+    return res.status(url.status).json(response);
+  },
+
   childhoodfriend: async (req, res) => {
     const friend = new Friend(req.body);
     const response = await friend.childhoodfriend();

@@ -31,3 +31,48 @@
 2025-01-30 19:53:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
 2025-01-30 19:54:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
 2025-01-30 19:54:04 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-01-30 20:47:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 20:47:04 [백엔드 맛보기] info : POST /login 200 Response: false 비밀번호가 틀렸습니다.
+2025-01-30 21:08:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 21:14:04 [백엔드 맛보기] error : POST /register 409 Response: false Error: ER_BAD_NULL_ERROR: Column 'name' cannot be null
+2025-01-30 21:22:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 21:23:04 [백엔드 맛보기] info : POST /register 201 Response: false Error: ER_BAD_NULL_ERROR: Column 'name' cannot be null
+2025-01-30 21:24:04 [백엔드 맛보기] info : POST /register 201 Response: false Error: ER_BAD_NULL_ERROR: Column 'name' cannot be null
+2025-01-30 21:25:04 [백엔드 맛보기] info : POST /register 201 Response: false Error: ER_BAD_NULL_ERROR: Column 'name' cannot be null
+2025-01-30 21:32:04 [백엔드 맛보기] info : POST /register 201 Response: false Error: ER_BAD_NULL_ERROR: Column 'psword' cannot be null
+2025-01-30 21:34:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 21:34:04 [백엔드 맛보기] info : POST /register 201 Response: true 
+2025-01-30 21:37:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 21:38:04 [백엔드 맛보기] info : POST /register 201 Response: undefined Registance successful
+2025-01-30 21:38:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 21:43:04 [백엔드 맛보기] info : POST /login 200 Response: false 존재하지 않는 아이디입니다.
+2025-01-30 21:44:04 [백엔드 맛보기] info : POST /login 200 Response: false 비밀번호가 틀렸습니다.
+2025-01-30 21:44:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 22:46:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 22:49:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 22:52:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 22:56:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 22:59:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 22:59:04 [백엔드 맛보기] info : POST /getbirth 200 Response: false 존재하지 않는 아이디입니다.
+2025-01-30 22:59:04 [백엔드 맛보기] info : POST /getbirth 200 Response: false 존재하지 않는 아이디입니다.
+2025-01-30 23:04:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:04:04 [백엔드 맛보기] info : POST /getbirth 200 Response: false 존재하지 않는 아이디입니다.
+2025-01-30 23:13:04 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-01-30 23:13:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:13:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:14:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:16:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:16:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:19:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:19:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:22:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:22:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:23:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:23:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:26:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:26:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:31:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:31:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:35:04 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-01-30 23:35:04 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-01-30 23:35:04 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 

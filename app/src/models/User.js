@@ -22,15 +22,18 @@ class User {
         }
         else {
           response.success = false;
+          response.status = 'NG';
           response.message = "비밀번호가 틀렸습니다.";
         }
       }
       else {
         response.success = false;
+        response.status = 'NG';
         response.message = "존재하지 않는 아이디입니다.";
       }
     } catch (err) {
       response.success = false;
+      response.status = 'NG';
       response.message = err;
     }
     return response;
@@ -38,12 +41,60 @@ class User {
 
   async register() {
     const client = this.body;
-    try {
-      const response = await UserStorage.save(client);
-      return response;
-    } catch (err) {
-      return { success: false, err };
+    const res = {
+      success: true,
+      status: 'OK',
+      message: 'Registance successful'
+    };
+    if(client) {
+      try {
+        const response = await UserStorage.save(client);
+        res.success = response.status;
+      } catch (err) {
+        res.success = false;
+        res.status = 'NG';
+        res.message = err;
+      }
     }
+    else {
+      res.success = false;
+      res.status = 'NG';
+      res.message = "no client.";
+    }
+    return res;
+  }
+
+  async getbirth() {
+    const client = this.body;
+    const response = {
+      success: true,
+      status: 'OK',
+      message: ''
+    };
+    try {
+      const user = await UserStorage.getUserInfo(client.userId);
+      if (user) {
+        if (user.id === client.userId) {
+          response.success = true;
+          response.message = user.birth;
+        }
+        else {
+          response.success = false;
+          response.status = 'NG';
+          response.message = "ID가 다릅니다.";
+        }
+      }
+      else {
+        response.success = false;
+        response.status = 'NG';
+        response.message = "존재하지 않는 아이디입니다.";
+      }
+    } catch (err) {
+      response.success = false;
+      response.status = 'NG';
+      response.message = err;
+    }
+    return response;
   }
 }
 
