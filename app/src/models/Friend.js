@@ -36,6 +36,7 @@ class Friend {
         try {
             // Get today’s date in the MySQL date format (YYYY-MM-DD)
             const today = new Date().toISOString().split('T')[0];
+            //const today = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }).split('T')[0];
             const selectSessionQuery = `
                 SELECT conversation_id 
                   FROM chat_sessions 
@@ -62,8 +63,9 @@ class Friend {
         }
 
         //let { myDateTime, userMessages, assistantMessages} = req.body
-        //let todayDateTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+        let todayDateTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
+        console.log("userMessagesCopy message 0:", client.userMessages);
         // ---------------------------------------------
         // 2. Build the messages array for OpenAI API call
         // ---------------------------------------------
@@ -82,11 +84,11 @@ class Friend {
             },
             {
                 role: "user",
-                content: `저의 생년월일과 태어난 시간은 ${client.myDateTime}입니다. 오늘은 ${client.todayDateTime}입니다.`
+                content: `저의 생년월일과 태어난 시간은 ${client.myDateTime}입니다. 오늘은 ${todayDateTime}입니다.`
             },
             {
                 role: "assistant",
-                content: `당신의 생년월일과 태어난 시간은 ${client.myDateTime}인 것과 오늘은 ${client.todayDateTime}인 것을 확인하였습니다. 운세에 대해서 어떤 것이든 물어보세요!`
+                content: `당신의 생년월일과 태어난 시간은 ${client.myDateTime}인 것과 오늘은 ${todayDateTime}인 것을 확인하였습니다. 운세에 대해서 어떤 것이든 물어보세요!`
             },
         ];
 
@@ -108,6 +110,9 @@ class Friend {
             }
         }
 
+        console.log("open ai send message:", messages);
+        console.log("userMessagesCopy message 1:", client.userMessages);
+
         // ---------------------------------------------
         // 3. Call the OpenAI API with retries
         // ---------------------------------------------
@@ -128,27 +133,47 @@ class Friend {
         }
         // Extract the assistant’s answer.
         let fortune = (completion.choices[0].message.content) || "No response from AI.";
+        const cleanedFortune = (fortune || "No response from AI.").replace(/\r?\n/g, ' ');
+
+        // const cleanedFortune = {
+        //     text: fortune.replace(/\r?\n/g, ' '),
+        //     length: fortune.length,
+        //     timestamp: new Date().toISOString()
+        // };
+        // const jsonFortune = JSON.stringify(cleanedFortune);
+
+        //console.log("type of user msg: ", typeof client.userMessages);
+        //console.log("type of ass msg: ", typeof cleanedFortune);
+        //console.log("userMessagesCopy message:", userMessagesCopy);
+        //console.log("assistMessagesCopy message:", assistantMessagesCopy);
+        //console.log("userMessagesCopy message 2:", client.userMessages);
+        //console.log("assistantMessagesCopy message 1:", jsonFortune);
 
         // ---------------------------------------------
         // 4. Save the chat messages to the database
         // ---------------------------------------------
         try {
             // Save each user message as a 'question'
-            for (let msg of userMessagesCopy) {
-                const insertMsgQuery = `
+            //for (let msg of userMessagesCopy) {
+            if(userMessagesCopy.length >= 1) {
+                let msg = userMessagesCopy[userMessagesCopy.length - 1].replace(/\r?\n/g, ' ');
+                const insertUserMsgQuery = `
                     INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
                     VALUES (?, ?, ?, ?);
                 `;
-                await db.query(insertMsgQuery, [conversation_id, client.id, 'question', msg]);
+                await db.query(insertUserMsgQuery, [conversation_id, client.id, 'question', msg]);
+                console.log("userMessagesCopy insert message:", msg);
             }
+            //}
             // Save each assistant message as an 'answer'
-            for (let msg of assistantMessagesCopy) {
-                const insertMsgQuery = `
-                    INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
-                    VALUES (?, ?, ?, ?);
-                `;
-                await db.query(insertMsgQuery, [conversation_id, client.id, 'answer', msg]);
-            }
+            //for (let msg of assistantMessagesCopy) {
+            const insertAssistMsgQuery = `
+                INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
+                VALUES (?, ?, ?, ?);
+            `;
+            await db.query(insertAssistMsgQuery, [conversation_id, client.id, 'answer', cleanedFortune]);
+            console.log("assistantMessagesCopy insert message:", cleanedFortune);
+            //}
         } catch (error) {
             console.error("Error saving chat messages to DB:", error);
             return { success: false, error: "Failed to save chat messages." };

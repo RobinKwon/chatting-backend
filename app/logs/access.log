@@ -173,3 +173,101 @@
 2025-02-07 01:02:05 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
 2025-02-07 01:03:05 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
 2025-02-07 01:03:05 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 14:23:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 14:23:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 14:24:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 14:24:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 14:24:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 14:24:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 14:33:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 14:33:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 14:33:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 14:34:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 14:37:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 14:37:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 14:37:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 14:37:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 14:44:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 14:45:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 14:45:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 14:45:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:00:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:00:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:00:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:01:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:07:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:08:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:08:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:08:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:16:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:16:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:16:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:16:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: false 
+2025-02-09 15:18:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:18:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:19:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:19:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:22:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:22:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:22:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:22:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:23:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:23:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:24:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:24:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:31:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:31:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:31:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:32:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:33:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:33:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:33:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:33:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:36:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:36:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:36:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:36:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:39:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:39:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:39:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 15:39:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 15:42:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 15:42:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 15:42:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 18:40:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 18:41:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 18:41:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 18:42:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 18:42:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 22:44:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 22:44:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 22:44:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:29:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 23:29:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 23:29:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:31:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 23:31:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 23:31:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:31:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:32:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:32:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:38:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 23:38:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 23:38:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:38:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:38:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:38:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:45:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 23:45:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 23:45:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:45:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:46:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:46:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:47:00 [백엔드 맛보기] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-09 23:47:00 [백엔드 맛보기] info : POST /login 200 Response: true Login successful
+2025-02-09 23:47:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:47:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:48:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:48:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-09 23:48:00 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-09 23:48:00 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
