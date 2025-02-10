@@ -1,69 +1,77 @@
 "use strict";
 
-//const db = require("../config/db");
 import db from "../config/db.js";
+import { v4 as uuidv4 } from "uuid"; // UUID 생성 라이브러리 추가
 
 class UserStorage {
-  static getUserInfo(id) {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM users WHERE id = ?;";
-      db.query(query, [id], (err, data) => {
-        if (err) reject(`${err}`);
-        else resolve(data[0]);
-      });
-    });
+  static async getUserInfo(id) {
+    try {
+      const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]); // ✅ `await`과 `execute()` 사용
+      return rows[0];
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   static async save(userInfo) {
-    return new Promise((resolve, reject) => {
-      const query = "INSERT INTO users(id, name, psword, birth) VALUES(?, ?, ?, ?);";
-      db.query(query, [userInfo.id, userInfo.name, userInfo.password, userInfo.birth], (err) => {
-        if (err) reject(`${err}`);
-        else resolve({ success: true });
-      });
-    });
+    try {
+      await db.execute(
+        "INSERT INTO users(id, name, psword, birth) VALUES(?, ?, ?, ?)",
+        [userInfo.id, userInfo.name, userInfo.password, userInfo.birth]
+      );
+      return { success: true };
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   static async newsession(userInfo) {
-    return new Promise((resolve, reject) => {
-      const query = "INSERT INTO chat_sessions (conversation_id, user_id, model_name) VALUES(?, ?, ?);";
-      db.query(query, [UUID(), userInfo.id, 'gpt-4o-mini'], (err) => {
-        if (err) reject(`${err}`);
-        else resolve({ success: true });
-      });
-    });
+    try {
+      await db.execute(
+        "INSERT INTO chat_sessions (conversation_id, user_id, model_name) VALUES(?, ?, ?)",
+        [uuidv4(), userInfo.id, "gpt-4o-mini"]
+      );
+      return { success: true };
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   static async savemessage(userInfo) {
-    return new Promise((resolve, reject) => {
-      const query = "INSERT INTO chat_messages (conversation_id, user_id, question_or_answer, message) VALUES(?, ?, ?, ?);";
-      db.query(query, [userInfo.conversation_id, userInfo.id, userInfo.q_a, userInfo.message], (err) => {
-        if (err) reject(`${err}`);
-        else resolve({ success: true });
-      });
-    });
+    try {
+      await db.execute(
+        "INSERT INTO chat_messages (conversation_id, user_id, question_or_answer, message) VALUES(?, ?, ?, ?)",
+        [userInfo.conversation_id, userInfo.id, userInfo.q_a, userInfo.message]
+      );
+      return { success: true };
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   static async search_uid(userInfo) {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM chat_messages WHERE user_id = ? ORDER BY date_time ASC;";
-      db.query(query, [userInfo.id], (err, data) => {
-        if (err) reject(`${err}`);
-        else resolve(data[0]);
-      });
-    });
+    try {
+      const [rows] = await db.execute(
+        "SELECT * FROM chat_messages WHERE user_id = ? ORDER BY date_time ASC",
+        [userInfo.id]
+      );
+      return rows;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   static async search_cid(userInfo) {
-    return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM chat_messages WHERE conversation_id = ? ORDER BY date_time ASC;";
-      db.query(query, [userInfoid], (err, data) => {
-        if (err) reject(`${err}`);
-        else resolve(data[0]);
-      });
-    });
+    try {
+      const [rows] = await db.execute(
+        "SELECT * FROM chat_messages WHERE conversation_id = ? ORDER BY date_time ASC",
+        [userInfo.conversation_id]
+      );
+      return rows;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 }
 
-//module.exports = UserStorage;
-export default UserStorage;
+export default UserStorage; // ✅ ESM 방식으로 export

@@ -15,6 +15,9 @@ class User {
       status: 'OK',
       message: 'Login successful'
     };
+
+    console.log("login:", client);
+
     try {
       const user = await UserStorage.getUserInfo(client.id);
       if (user) {
