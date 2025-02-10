@@ -1,12 +1,12 @@
 "use strict";
 
 import db from "../config/db.js";
-import { v4 as uuidv4 } from "uuid"; // UUID 생성 라이브러리 추가
+import { v4 as uuidv4 } from "uuid";
 
 class UserStorage {
   static async getUserInfo(id) {
     try {
-      const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]); // ✅ `await`과 `execute()` 사용
+      const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
       return rows[0];
     } catch (err) {
       throw new Error(err);
@@ -74,4 +74,4 @@ class UserStorage {
   }
 }
 
-export default UserStorage; // ✅ ESM 방식으로 export
+export default UserStorage;

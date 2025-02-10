@@ -1,9 +1,6 @@
 "use strict";
 
-//const logger = require("../../config/logger");
-//const User = require("../../models/User");
-//const Friend = require("../../models/Friend");
-import logger from "../../config/logger.js"; // 확장자 `.js` 필수
+import logger from "../../config/logger.js";
 import User from "../../models/User.js";
 import Friend from "../../models/Friend.js";
 
@@ -74,8 +71,7 @@ const process = {
   },
 };
 
-// module.exports = { output, process };
-export default { output, process }; // ✅ ESM 방식으로 내보내기
+export default { output, process };
 
 const log = (response, url) => {
   if (response.err) {

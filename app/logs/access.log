@@ -314,3 +314,56 @@
 2025-02-10 16:36:01 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
 2025-02-10 16:36:01 [백엔드 맛보기] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
 2025-02-10 16:36:01 [백엔드 맛보기] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:00:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:00:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:00:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:00:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:00:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:01:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:10:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:10:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:10:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:10:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:11:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:11:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:14:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:14:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:21:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:21:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:21:01 [CHF] info : POST /getbirth 200 Response: true Fri Nov 30 1973 00:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:21:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:22:01 [CHF] info : POST /getbirth 200 Response: true Fri Nov 30 1973 00:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:31:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:31:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:31:01 [CHF] info : POST /getbirth 200 Response: true Fri Nov 30 1973 00:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:31:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:32:01 [CHF] info : POST /getbirth 200 Response: true Fri Nov 30 1973 00:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:32:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:32:01 [CHF] info : POST /getbirth 200 Response: true Fri Nov 30 1973 00:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:32:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:38:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:38:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:38:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:38:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:40:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:40:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:40:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:40:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:41:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:42:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:42:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:42:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:42:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:42:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:45:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:45:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:46:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:46:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:50:01 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-10 17:50:01 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-10 17:50:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:50:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:51:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:51:01 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-02-10 17:51:01 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-10 17:51:01 [CHF] info : POST /childhoodfriend 200 Response: true 

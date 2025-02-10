@@ -1,37 +1,29 @@
 "use strict";
 
-// const { v4: uuidv4 } = require('uuid');
-// const db = require("../config/db");
-// require('dotenv').config();
-// const OpenAI = require('openai');
-import { v4 as uuidv4 } from "uuid"; // `uuid` 모듈 ESM 방식으로 가져오기
-import db from "../config/db.js"; // 확장자 `.js` 필수
-import "dotenv/config"; // ESM 방식으로 dotenv 로드
-import OpenAI from "openai"; // `openai` 모듈 ESM 방식으로 가져오기
+import { v4 as uuidv4 } from "uuid";
+import db from "../config/db.js";
+import "dotenv/config";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-//export { uuidv4, db, openai }; // 필요한 모듈을 ESM 방식으로 내보내기
-
-
 class Friend {
     constructor(body) {
         this.body = body;
-      }
+    }
     
     // POST method route
     async childhoodfriend() {
         const client = this.body;
         // It is important to keep copies of the original message arrays
         // because the while loop below consumes them.
-        const userMessagesCopy = [...client.userMessages];
-        const assistantMessagesCopy = [...client.assistantMessages];
+        //const userMessagesCopy = [...client.userMessages];
+        //const assistantMessagesCopy = [...client.assistantMessages];
 
-        console.log("Client Object:", client);
-        console.log("Client ID:", client.id);
-        
+        //console.log("CHF client:", client);
+
         // ---------------------------------------------
         // 1. Check if a chat session exists for today
         // ---------------------------------------------
@@ -58,7 +50,7 @@ class Friend {
             // Use the promise-based query interface.
             //const rows = await db.query(selectSessionQuery, [client.id, today]);
             const [rows] = await db.execute(selectSessionQuery, [client.id, today]);
-            console.log("조회 결과:", rows);
+            //console.log("조회 결과:", rows);
             if (rows.length > 0) {
                 // Use the conversation_id from today’s session.
                 conversation_id = rows[0].conversation_id;
@@ -105,23 +97,46 @@ class Friend {
             },
         ];
 
+        // Fetch existing messages from the database
+        try {
+            const selectMessagesQuery = `
+                SELECT q_a, message
+                FROM chat_messages
+                WHERE conversation_id = ?;
+            `;
+            const [existingMessages] = await db.execute(selectMessagesQuery, [conversation_id]);
+
+            // Add existing messages to the messages array
+            existingMessages.forEach(msg => {
+                messages.push({
+                    role: msg.q_a === 'question' ? 'user' : 'assistant',
+                    content: msg.message.replace(/\n/g, "")
+                });
+            });
+        } catch (error) {
+            console.error("Error fetching existing messages from DB:", error);
+            return { success: false, error: "Failed to fetch existing messages." };
+        }
+
         // Append any additional messages from the request.
         // (Note: this loop “consumes” client.userMessages and client.assistantMessages;
         // that’s why we made copies above for later DB insertion.)
-        while (client.userMessages.length != 0 || client.assistantMessages.length != 0) {
-            if (client.userMessages.length != 0) {
-                messages.push({
-                    role: "user",
-                    content: String(client.userMessages.shift()).replace(/\n/g, "")
-                })
-            }
-            if (client.assistantMessages.length !== 0) {
-                messages.push({
-                    role: "assistant",
-                    content: String(client.assistantMessages.shift()).replace(/\n/g, "")
-                });
-            }
+        //while (client.userMessages.length != 0) {   //client.assistantMessages.length != 0
+        if (client.userMessages.length != 0) {
+            messages.push({
+                role: "user",
+                content: String(client.userMessages).replace(/\n/g, "")
+            })
         }
+        // if (client.assistantMessages.length !== 0) {
+        //     messages.push({
+        //         role: "assistant",
+        //         content: String(client.assistantMessages.shift()).replace(/\n/g, "")
+        //     });
+        // }
+        //}
+
+        //console.log("user send message:", messages);
 
         // ---------------------------------------------
         // 3. Call the OpenAI API with retries
@@ -150,8 +165,8 @@ class Friend {
         // ---------------------------------------------
         try {
             // Save each user message as a 'question'
-            if(userMessagesCopy.length >= 1) {
-                let msg = userMessagesCopy[userMessagesCopy.length - 1].replace(/\r?\n/g, ' ');
+            if(client.userMessages.length >= 1) {
+                let msg = client.userMessages.replace(/\r?\n/g, ' ');
                 const insertUserMsgQuery = `
                     INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
                     VALUES (?, ?, ?, ?);
@@ -175,5 +190,4 @@ class Friend {
     };
 }
 
-//module.exports = Friend;
 export default Friend;

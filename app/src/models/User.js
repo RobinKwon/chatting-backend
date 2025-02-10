@@ -1,6 +1,5 @@
 "use strict";
 
-//const UserStorage = require("./UserStorage");
 import UserStorage from "./UserStorage.js";
 
 class User {
@@ -15,8 +14,6 @@ class User {
       status: 'OK',
       message: 'Login successful'
     };
-
-    console.log("login:", client);
 
     try {
       const user = await UserStorage.getUserInfo(client.id);
@@ -102,5 +99,4 @@ class User {
   }
 }
 
-//module.exports = User;
 export default User;
