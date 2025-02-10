@@ -1,6 +1,7 @@
 "use strict";
 
-const UserStorage = require("./UserStorage");
+//const UserStorage = require("./UserStorage");
+import UserStorage from "./UserStorage.js";
 
 class User {
   constructor(body) {
@@ -98,4 +99,5 @@ class User {
   }
 }
 
-module.exports = User;
+//module.exports = User;
+export default User;

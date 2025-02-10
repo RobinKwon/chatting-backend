@@ -1,8 +1,11 @@
 "use strict";
 
-const logger = require("../../config/logger");
-const User = require("../../models/User");
-const Friend = require("../../models/Friend");
+//const logger = require("../../config/logger");
+//const User = require("../../models/User");
+//const Friend = require("../../models/Friend");
+import logger from "../../config/logger.js"; // 확장자 `.js` 필수
+import User from "../../models/User.js";
+import Friend from "../../models/Friend.js";
 
 const output = {
   home: (req, res) => {
@@ -71,10 +74,8 @@ const process = {
   },
 };
 
-module.exports = {
-  output,
-  process,
-};
+// module.exports = { output, process };
+export default { output, process }; // ✅ ESM 방식으로 내보내기
 
 const log = (response, url) => {
   if (response.err) {

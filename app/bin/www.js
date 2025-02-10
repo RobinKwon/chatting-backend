@@ -1,7 +1,7 @@
 "use strict";
 
-const app = require("../index");
-const logger = require("../src/config/logger");
+import app from "../index.js"; // ESM 방식으로 변경
+import logger from "../src/config/logger.js"; // 파일 확장자 `.js` 필수
 
 const PORT = process.env.PORT || 3000;
 

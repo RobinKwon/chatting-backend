@@ -1,6 +1,7 @@
-const { createLogger, transports, format } = require("winston");
-const { combine, timestamp, label, printf, simple, colorize } = format;
+//const { createLogger, transports, format } = require("winston");
+import { createLogger, transports, format } from "winston";
 
+const { combine, timestamp, label, printf, simple, colorize } = format;
 const printFormat = printf(({ timestamp, label, level, message }) => {
   return `${timestamp} [${label}] ${level} : ${message}`;
 });
@@ -46,4 +47,5 @@ logger.stream = {
   write: (message) => logger.info(message),
 };
 
-module.exports = logger;
+//module.exports = logger;
+export default logger;

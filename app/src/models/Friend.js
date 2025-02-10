@@ -1,15 +1,20 @@
 "use strict";
 
-const { v4: uuidv4 } = require('uuid');
-
-const db = require("../config/db");
-
-require('dotenv').config();
-const OpenAI = require('openai');
+// const { v4: uuidv4 } = require('uuid');
+// const db = require("../config/db");
+// require('dotenv').config();
+// const OpenAI = require('openai');
+import { v4 as uuidv4 } from "uuid"; // `uuid` 모듈 ESM 방식으로 가져오기
+import db from "../config/db.js"; // 확장자 `.js` 필수
+import "dotenv/config"; // ESM 방식으로 dotenv 로드
+import OpenAI from "openai"; // `openai` 모듈 ESM 방식으로 가져오기
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
+
+//export { uuidv4, db, openai }; // 필요한 모듈을 ESM 방식으로 내보내기
+
 
 class Friend {
     constructor(body) {
@@ -35,8 +40,15 @@ class Friend {
         let conversation_id;
         try {
             // Get today’s date in the MySQL date format (YYYY-MM-DD)
-            const today = new Date().toISOString().split('T')[0];
-            //const today = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }).split('T')[0];
+            //const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('ko-KR', { 
+                timeZone: 'Asia/Seoul', 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit'
+            }).replace(/\. /g, '-').replace('.', ''); // 2025. 02. 09 → 2025-02-09 변환
+            //console.log("today:", today);
+
             const selectSessionQuery = `
                 SELECT conversation_id 
                   FROM chat_sessions 
@@ -44,7 +56,9 @@ class Friend {
                    AND DATE(created_at) = ?;
             `;
             // Use the promise-based query interface.
-            const rows = await db.query(selectSessionQuery, [client.id, today]);
+            //const rows = await db.query(selectSessionQuery, [client.id, today]);
+            const [rows] = await db.execute(selectSessionQuery, [client.id, today]);
+            console.log("조회 결과:", rows);
             if (rows.length > 0) {
                 // Use the conversation_id from today’s session.
                 conversation_id = rows[0].conversation_id;
@@ -65,7 +79,6 @@ class Friend {
         //let { myDateTime, userMessages, assistantMessages} = req.body
         let todayDateTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
-        console.log("userMessagesCopy message 0:", client.userMessages);
         // ---------------------------------------------
         // 2. Build the messages array for OpenAI API call
         // ---------------------------------------------
@@ -110,9 +123,6 @@ class Friend {
             }
         }
 
-        console.log("open ai send message:", messages);
-        console.log("userMessagesCopy message 1:", client.userMessages);
-
         // ---------------------------------------------
         // 3. Call the OpenAI API with retries
         // ---------------------------------------------
@@ -135,26 +145,11 @@ class Friend {
         let fortune = (completion.choices[0].message.content) || "No response from AI.";
         const cleanedFortune = (fortune || "No response from AI.").replace(/\r?\n/g, ' ');
 
-        // const cleanedFortune = {
-        //     text: fortune.replace(/\r?\n/g, ' '),
-        //     length: fortune.length,
-        //     timestamp: new Date().toISOString()
-        // };
-        // const jsonFortune = JSON.stringify(cleanedFortune);
-
-        //console.log("type of user msg: ", typeof client.userMessages);
-        //console.log("type of ass msg: ", typeof cleanedFortune);
-        //console.log("userMessagesCopy message:", userMessagesCopy);
-        //console.log("assistMessagesCopy message:", assistantMessagesCopy);
-        //console.log("userMessagesCopy message 2:", client.userMessages);
-        //console.log("assistantMessagesCopy message 1:", jsonFortune);
-
         // ---------------------------------------------
         // 4. Save the chat messages to the database
         // ---------------------------------------------
         try {
             // Save each user message as a 'question'
-            //for (let msg of userMessagesCopy) {
             if(userMessagesCopy.length >= 1) {
                 let msg = userMessagesCopy[userMessagesCopy.length - 1].replace(/\r?\n/g, ' ');
                 const insertUserMsgQuery = `
@@ -162,18 +157,14 @@ class Friend {
                     VALUES (?, ?, ?, ?);
                 `;
                 await db.query(insertUserMsgQuery, [conversation_id, client.id, 'question', msg]);
-                console.log("userMessagesCopy insert message:", msg);
             }
-            //}
-            // Save each assistant message as an 'answer'
-            //for (let msg of assistantMessagesCopy) {
+
+            // Save assistant message as an 'answer'
             const insertAssistMsgQuery = `
                 INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
                 VALUES (?, ?, ?, ?);
             `;
             await db.query(insertAssistMsgQuery, [conversation_id, client.id, 'answer', cleanedFortune]);
-            console.log("assistantMessagesCopy insert message:", cleanedFortune);
-            //}
         } catch (error) {
             console.error("Error saving chat messages to DB:", error);
             return { success: false, error: "Failed to save chat messages." };
@@ -184,4 +175,5 @@ class Friend {
     };
 }
 
-module.exports = Friend;
+//module.exports = Friend;
+export default Friend;
