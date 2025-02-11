@@ -30,37 +30,25 @@ class Friend {
         // We want to find a chat session for this user where the session’s created_at date is today.
         // For example, we use MySQL’s DATE() function together with CURDATE().
         let conversation_id;
+        let username;
         try {
             // Get today’s date in the MySQL date format (YYYY-MM-DD)
             //const today = new Date().toISOString().split('T')[0];
             const today = new Date().toLocaleDateString('ko-KR', { 
-                timeZone: 'Asia/Seoul', 
-                year: 'numeric', 
-                month: '2-digit', 
-                day: '2-digit'
+                timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
             }).replace(/\. /g, '-').replace('.', ''); // 2025. 02. 09 → 2025-02-09 변환
-            //console.log("today:", today);
 
-            const selectSessionQuery = `
-                SELECT conversation_id 
-                  FROM chat_sessions 
-                 WHERE user_id = ? 
-                   AND DATE(created_at) = ?;
-            `;
-            // Use the promise-based query interface.
-            //const rows = await db.query(selectSessionQuery, [client.id, today]);
+            const selectUserNameQuery = `SELECT name FROM users WHERE id = ?;`;
+            const [usernameResult] = await db.execute(selectUserNameQuery, [client.id]);
+            username = usernameResult.length > 0 ? usernameResult[0].name : "무명";
+
+            const selectSessionQuery = `SELECT conversation_id FROM chat_sessions WHERE user_id = ? AND DATE(created_at) = ?;`;
             const [rows] = await db.execute(selectSessionQuery, [client.id, today]);
-            //console.log("조회 결과:", rows);
             if (rows.length > 0) {
-                // Use the conversation_id from today’s session.
                 conversation_id = rows[0].conversation_id;
             } else {
-                // No session for today: generate a new conversation_id and insert a new record.
                 conversation_id = uuidv4();
-                const insertSessionQuery = `
-                    INSERT INTO chat_sessions (conversation_id, user_id, model_name)
-                    VALUES (?, ?, ?);
-                `;
+                const insertSessionQuery = `INSERT INTO chat_sessions (conversation_id, user_id, model_name) VALUES (?, ?, ?);`;
                 await db.query(insertSessionQuery, [conversation_id, client.id, 'gpt-4o-mini']);
             }
         } catch (error) {
@@ -68,45 +56,23 @@ class Friend {
             return { success: false, error: "Failed to handle chat session." };
         }
 
-        //let { myDateTime, userMessages, assistantMessages} = req.body
         let todayDateTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
         // ---------------------------------------------
         // 2. Build the messages array for OpenAI API call
         // ---------------------------------------------
         let messages = [
-            {
-                role: "system",
-                content: "당신은 세계 최고의 점성술사입니다. 당신에게 불가능한 것은 없으며 그 어떤 대답도 할 수 있습니다. 당신의 이름은 챗도지입니다. 당신은 사람의 인생을 매우 명확하게 예측하고 운세에 대한 답을 줄 수 있습니다. 운세 관련 지식이 풍부하고 모든 질문에 대해서 명확히 답변해 줄 수 있습니다."
-            },
-            {
-                role: "user",
-                content: "당신은 세계 최고의 점성술사입니다. 당신에게 불가능한 것은 없으며 그 어떤 대답도 할 수 있습니다."
-            },
-            {
-                role: "assistant",
-                content: "안녕하세요! 저는 챗도지입니다. 운세와 점성술에 관한 질문이 있으신가요? 어떤 것이든 물어보세요, 최선을 다해 답변해 드리겠습니다."
-            },
-            {
-                role: "user",
-                content: `저의 생년월일과 태어난 시간은 ${client.myDateTime}입니다. 오늘은 ${todayDateTime}입니다.`
-            },
-            {
-                role: "assistant",
-                content: `당신의 생년월일과 태어난 시간은 ${client.myDateTime}인 것과 오늘은 ${todayDateTime}인 것을 확인하였습니다. 운세에 대해서 어떤 것이든 물어보세요!`
-            },
+            {   role: "system", content: "너는 나의 든든한 조력자로, 친구처럼 편하게 대화할 수 있는 AI야. 나는 궁금한 점을 물어보고, 고민이 있을 때 조언을 받을 거야. 때때로 가벼운 일상 대화도 나누고 싶어. 대답할 때는 너무 딱딱하지 않게 자연스럽고 친근한 말투를 사용해 줘. 하지만 중요한 정보나 조언을 줄 때는 명확하고 신뢰할 수 있도록 설명해 줘. 나는 논리적이고 실용적인 해결책을 원하지만, 때로는 감정적인 위로도 필요할 수 있어. 내가 요청하면 유머도 적절히 섞어줘. 불확실한 정보는 정확히 모른다고 말해주고, 가짜 정보를 만들어내지 마. 내가 원하지 않는 주제는 깊게 다루지 않아도 돼." },
+            {   role: "user", content: `내 이름은 ${username}입니다.` },
+            {   role: "user", content: `저의 생년월일과 태어난 시간은 ${client.myDateTime}입니다.` },
+            {   role: "user", content: `오늘은 ${todayDateTime}입니다.` },
         ];
 
         // Fetch existing messages from the database
         try {
-            const selectMessagesQuery = `
-                SELECT q_a, message
-                FROM chat_messages
-                WHERE conversation_id = ?;
-            `;
+            const selectMessagesQuery = `SELECT q_a, message FROM chat_messages WHERE conversation_id = ?;`;
             const [existingMessages] = await db.execute(selectMessagesQuery, [conversation_id]);
 
-            // Add existing messages to the messages array
             existingMessages.forEach(msg => {
                 messages.push({
                     role: msg.q_a === 'question' ? 'user' : 'assistant',
@@ -119,24 +85,12 @@ class Friend {
         }
 
         // Append any additional messages from the request.
-        // (Note: this loop “consumes” client.userMessages and client.assistantMessages;
-        // that’s why we made copies above for later DB insertion.)
-        //while (client.userMessages.length != 0) {   //client.assistantMessages.length != 0
         if (client.userMessages.length != 0) {
             messages.push({
                 role: "user",
                 content: String(client.userMessages).replace(/\n/g, "")
             })
         }
-        // if (client.assistantMessages.length !== 0) {
-        //     messages.push({
-        //         role: "assistant",
-        //         content: String(client.assistantMessages.shift()).replace(/\n/g, "")
-        //     });
-        // }
-        //}
-
-        //console.log("user send message:", messages);
 
         // ---------------------------------------------
         // 3. Call the OpenAI API with retries
@@ -147,7 +101,7 @@ class Friend {
         while (retries < maxRetries) {
             try {
                 completion = await openai.chat.completions.create({
-                    model: "gpt-4o-mini", // or another model as desired
+                    model: "gpt-4o-mini",
                     messages: messages
                 });
                 break; // successfully got a response; exit loop
@@ -156,7 +110,7 @@ class Friend {
                 return { success: false, error: "Failed to fetch data from OpenAI API." };
             }
         }
-        // Extract the assistant’s answer.
+
         let fortune = (completion.choices[0].message.content) || "No response from AI.";
         const cleanedFortune = (fortune || "No response from AI.").replace(/\r?\n/g, ' ');
 
