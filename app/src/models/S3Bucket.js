@@ -6,19 +6,24 @@ import "dotenv/config";
 
 //import express from "express";
 //import multer from "multer";
-import AWS from "aws-sdk";
+//import AWS from "aws-sdk";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import fs from "fs";
 import path from "path";
+import openai from "openai";
 
 //const app = express();
 //const upload = multer({ dest: 'uploads/' });
 
-AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION
+// ✅ AWS S3 설정 (v3)
+const s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
 });
-const s3 = new AWS.S3();
 
 class S3_Bucket {
     constructor(body) {
@@ -32,7 +37,7 @@ class S3_Bucket {
             const base64Image = imageBuffer.toString('base64');
 
             const response = await openai.chat.completions.create({
-                model: "gpt-4-turbo",
+                model: "gpt-4o-mini",
                 messages: [
                     { role: "system", content: "당신은 이미지 설명을 제공하는 AI입니다." },
                     {
@@ -62,7 +67,6 @@ class S3_Bucket {
         // We want to find a chat session for this user where the session’s created_at date is today.
         // For example, we use MySQL’s DATE() function together with CURDATE().
         let conversation_id;
-        let username;
         let fileUrl;
         let description;
         try {
@@ -72,9 +76,7 @@ class S3_Bucket {
                 timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
             }).replace(/\. /g, '-').replace('.', ''); // 2025. 02. 09 → 2025-02-09 변환
 
-            const selectUserNameQuery = `SELECT name FROM users WHERE id = ?;`;
-            const [usernameResult] = await db.execute(selectUserNameQuery, [client.id]);
-            username = usernameResult.length > 0 ? usernameResult[0].name : "무명";
+            console.log("today:", today);
 
             const selectSessionQuery = `SELECT conversation_id FROM chat_sessions WHERE user_id = ? AND DATE(created_at) = ?;`;
             const [rows] = await db.execute(selectSessionQuery, [client.id, today]);
@@ -90,31 +92,49 @@ class S3_Bucket {
             return { success: false, error: "Failed to handle chat session." };
         }
 
+        console.log("✅ Debug - Insert Parameters:", {
+            user_id: client.id,
+            conversation_id: conversation_id,
+            //fileUrl: fileUrl,
+            path: client.file.path,
+            fileName: client.file.originalname,
+            fileType: client.file.mimetype,
+            fileSize: client.file.size,
+            //description: description
+        });
+
         // ---------------------------------------------
         // 2. upload image to S3
         // ---------------------------------------------
         try {
-            if (!req.file) {
+            if (!client.file) {
                 return { success: false, error: "No file exist." };
             }
-            const fileContent = fs.readFileSync(req.file.path);
-            const fileName = Date.now() + path.extname(req.file.originalname);
+            const fileContent = fs.readFileSync(client.file.path);
+            const fileName = `${uuidv4()}${path.extname(client.file.originalname)}`;
+
             // S3 업로드
             const uploadParams = {
                 Bucket: process.env.S3_BUCKET_NAME,
                 Key: fileName,
                 Body: fileContent,
                 ACL: 'public-read',
-                ContentType: req.file.mimetype
+                ContentType: client.file.mimetype
             };
-            const s3Response = await s3.upload(uploadParams).promise();
+
+            // ✅ v3 방식으로 파일 업로드
+            const upload = new Upload({
+                client: s3,
+                params: uploadParams
+            });
+            const s3Response = await upload.done();
             fileUrl = s3Response.Location;
             
             // OpenAI Vision API 호출
-            description = await getImageDescription(req.file.path);
+            description = await this.getImageDescription(client.file.path);
            
             // 로컬 파일 삭제
-            fs.unlinkSync(req.file.path);
+            fs.unlinkSync(client.file.path);
             //res.json({ message: '업로드 완료', file_url: fileUrl });
         } catch (error) {
             console.error(error);
@@ -133,10 +153,10 @@ class S3_Bucket {
                     client.id,
                     conversation_id,
                     fileUrl,                // S3 URL
-                    req.file.originalname,  // 파일명
-                    req.file.mimetype,
-                    req.file.size,
-                    null                    // 설명 (옵션)
+                    client.file.originalname,  // 파일명
+                    client.file.mimetype,
+                    client.file.size,
+                    description                    // 설명 (옵션)
                 ]
             );
         }

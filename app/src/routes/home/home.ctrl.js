@@ -1,5 +1,6 @@
 "use strict";
 
+import S3_Bucket from "../../models/S3Bucket.js";
 import logger from "../../config/logger.js";
 import User from "../../models/User.js";
 import Friend from "../../models/Friend.js";
