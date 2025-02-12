@@ -69,6 +69,18 @@ const process = {
     log(response, url);
     return res.status(url.status).json(response);
   },
+
+  upload_image: async (req, res) => {
+    const s3_bucket = new S3_Bucket(req.body);
+    const response = await s3_bucket.upload_image();
+    const url = {
+      method: "POST",
+      path: "/upload_image",
+      status: response.err ? 400 : 200,
+    };
+    log(response, url);
+    return res.status(url.status).json(response);
+  },
 };
 
 export default { output, process };
