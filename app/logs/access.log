@@ -426,3 +426,50 @@
 2025-02-12 20:17:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
 2025-02-12 20:17:03 [CHF] info : POST /login 200 Response: true Login successful
 2025-02-12 20:18:03 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-12 23:33:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 23:34:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 23:38:03 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-12 23:41:03 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-12 23:45:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 23:46:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 23:46:03 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-12 23:50:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 23:50:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 23:50:03 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:14:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:14:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:23:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:23:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:23:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:25:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:26:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:26:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:31:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:32:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:32:04 [CHF] info : POST /upload_image 200 Response: true upload complete.
+2025-02-13 00:43:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:44:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:44:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:46:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:46:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:46:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:48:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:48:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:48:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:54:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:54:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:55:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:57:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:57:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:58:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 00:59:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 00:59:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 00:59:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 01:04:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 01:04:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 01:04:04 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-13 01:06:04 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-13 01:06:04 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-13 01:06:04 [CHF] info : POST /upload_image 200 Response: true upload complete.
+2025-02-13 01:07:04 [CHF] info : POST /getbirth 200 Response: true Thu Aug 20 1970 17:00:00 GMT+0900 (대한민국 표준시)
+2025-02-13 01:07:04 [CHF] info : POST /childhoodfriend 200 Response: true 

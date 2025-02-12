@@ -72,7 +72,17 @@ const process = {
   },
 
   upload_image: async (req, res) => {
-    const s3_bucket = new S3_Bucket(req.body);
+    // multer가 multipart/form-data 요청을 파싱하면
+    // req.body에는 text 필드들이, req.file에는 파일 정보가 채워집니다.
+    // 따라서 두 객체를 합쳐 S3_Bucket 생성자에 전달합니다.
+    const clientData = {
+      id: req.body.id,
+      file: req.file,
+      // 프론트엔드에서 추가 데이터(userMessages 등)가 있다면 아래와 같이 처리할 수 있습니다.
+      userMessages: req.body.userMessages ? JSON.parse(req.body.userMessages) : []
+    };
+
+    const s3_bucket = new S3_Bucket(clientData);
     const response = await s3_bucket.upload_image();
     const url = {
       method: "POST",
