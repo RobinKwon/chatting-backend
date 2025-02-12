@@ -58,8 +58,50 @@ class S3_Bucket {
         }
     }    
 
+    // ✅ S3에 폴더가 존재하는지 확인
+    async checkFolderExists(folderName) {
+        try {
+            const command = new HeadObjectCommand({
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: `${folderName}/` // 폴더 경로
+            });
+
+            await s3.send(command);
+            console.log(`✅ 폴더 존재함: ${folderName}/`);
+            return true;
+        } catch (error) {
+            if (error.name === "NotFound") {
+                console.log(`🚀 폴더 없음, 새로 생성: ${folderName}/`);
+                return false;
+            }
+            console.error("❌ S3 폴더 확인 오류:", error);
+            throw error;
+        }
+    }
+
+    // ✅ S3에 폴더 생성 (빈 오브젝트 업로드)
+    async createFolder(folderName) {
+        try {
+            const command = new PutObjectCommand({
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: `${folderName}/`, // 폴더처럼 사용 (빈 파일 업로드)
+                Body: ""
+            });
+
+            await s3.send(command);
+            console.log(`✅ S3 폴더 생성 완료: ${folderName}/`);
+        } catch (error) {
+            console.error("❌ S3 폴더 생성 오류:", error);
+            throw error;
+        }
+    }
+
     async upload_image() {  //app.post('/upload', upload.single('image'), async (req, res) => 
         const client = this.body;
+
+        if (!client.file) {
+            return { success: false, error: "No file exist." };
+        }
 
         // ---------------------------------------------
         // 1. Check if a chat session exists for today
@@ -96,6 +138,7 @@ class S3_Bucket {
             user_id: client.id,
             conversation_id: conversation_id,
             //fileUrl: fileUrl,
+            file: client.file,
             path: client.file.path,
             fileName: client.file.originalname,
             fileType: client.file.mimetype,
@@ -103,22 +146,29 @@ class S3_Bucket {
             //description: description
         });
 
+        //const fileContent = fs.readFileSync(client.file.path);
+        const clientId = client.id || "unknown"; // 사용자 ID
+        const folderName = `uploads/${clientId}`; // S3 내 폴더 경로
+        const fileName = `${uuidv4()}${path.extname(client.file.originalname)}`;
+        const filePath = `${folderName}/${fileName}`; // 최종 파일 경로
+
         // ---------------------------------------------
         // 2. upload image to S3
         // ---------------------------------------------
         try {
-            if (!client.file) {
-                return { success: false, error: "No file exist." };
+            // 📌 폴더 존재 여부 확인 후, 없으면 생성
+            const folderExists = await this.checkFolderExists(folderName);
+            if (!folderExists) {
+                await this.createFolder(folderName);
             }
-            const fileContent = fs.readFileSync(client.file.path);
-            const fileName = `${uuidv4()}${path.extname(client.file.originalname)}`;
 
-            // S3 업로드
+            // 📌 파일 업로드 설정
+            const fileStream = fs.createReadStream(client.file.path);
             const uploadParams = {
                 Bucket: process.env.S3_BUCKET_NAME,
-                Key: fileName,
-                Body: fileContent,
-                ACL: 'public-read',
+                Key: filePath,
+                Body: fileStream,
+                ACL: "public-read",
                 ContentType: client.file.mimetype
             };
 

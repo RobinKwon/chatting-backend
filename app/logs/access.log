@@ -415,3 +415,14 @@
 2025-02-12 19:23:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
 2025-02-12 19:23:03 [CHF] info : POST /login 200 Response: true Login successful
 2025-02-12 19:23:03 [CHF] info : POST /upload_image 200 Response: false 
+2025-02-12 19:58:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 19:58:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 19:59:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 19:59:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 20:01:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 20:01:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 20:11:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 20:11:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 20:17:03 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-02-12 20:17:03 [CHF] info : POST /login 200 Response: true Login successful
+2025-02-12 20:18:03 [CHF] info : POST /upload_image 200 Response: false 
