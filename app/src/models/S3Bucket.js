@@ -34,7 +34,7 @@ class S3_Bucket {
         this.body = body;
     }
 
-    async getImageDescription(imagePath) {
+    async getImageDescription(userMsg, imagePath) {
         try {
             // Validate input path
             if (!imagePath || typeof imagePath !== 'string') {
@@ -70,12 +70,12 @@ class S3_Bucket {
                 messages: [
                     {
                         role: "system",
-                        content: "당신은 이미지 설명을 제공하는 AI입니다. 상세하고 정확한 설명을 제공해주세요."
+                        content: "당신은 이미지 설명을 제공하는 AI입니다. user message를 참고하여 상세하고 정확한 설명을 제공해주세요."
                     },
                     {
                         role: "user",
                         content: [
-                            { type: "text", text: "이 이미지에 대해 자세히 설명해 주세요." },
+                            { type: "text", text: userMsg },    // + " 이 이미지에 대해 자세히 설명해 주세요."
                             {
                                 type: "image_url",
                                 image_url: {
@@ -151,6 +151,11 @@ class S3_Bucket {
             return { success: false, error: "No file exist." };
         }
 
+        // userMessages를 JSON으로 파싱
+        const parsedMessages = client.userMessages.Text;
+        //typeof client.userMessages === 'string' ? JSON.parse(client.userMessages) : client.userMessages.toString();
+        console.log("parsedMessages:", parsedMessages );
+
         // ---------------------------------------------
         // 1. Check if a chat session exists for today
         // ---------------------------------------------
@@ -204,6 +209,7 @@ class S3_Bucket {
         console.log("✅ Debug - Insert Parameters:", {
             user_id: client.id,
             conversation_id: conversation_id,
+            user_msg: parsedMessages,   //client.userMessages,
             file: {
                 // file.path는 이제 localFilePath 변수에 저장됨
                 localPath: localFilePath,
@@ -250,7 +256,7 @@ class S3_Bucket {
             fileUrl = s3Response.Location;
             
             // OpenAI Vision API 호출
-            description = await this.getImageDescription(localFilePath);
+            description = await this.getImageDescription(parsedMessages, localFilePath);    //client.userMessages
            
             // 로컬 파일 삭제
             fs.unlinkSync(localFilePath);
@@ -289,19 +295,29 @@ class S3_Bucket {
         // ---------------------------------------------
         try {
             // Save each user message as a 'question'
-            if(client.userMessages.length >= 1) {
-                let msg = description.replace(/\r?\n/g, ' ');
+            if (parsedMessages !== '') {
+                //let user_msg = parsedMessages.toString().replace(/\r?\n/g, ' ');
                 const insertUserMsgQuery = `
                     INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
                     VALUES (?, ?, ?, ?);
                 `;
-                await db.query(insertUserMsgQuery, [conversation_id, client.id, 'file', msg]);
+                await db.query(insertUserMsgQuery, [conversation_id, client.id, 'question', parsedMessages]);
+            }
+
+            // Save each user message as a 'question'
+            if(description.length >= 1) {
+                let ans_msg = description.replace(/\r?\n/g, ' ');
+                const insertAnswerMsgQuery = `
+                    INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
+                    VALUES (?, ?, ?, ?);
+                `;
+                await db.query(insertAnswerMsgQuery, [conversation_id, client.id, 'answer', ans_msg]);
             }
         } catch (error) {
             console.error("Error saving photo explane to DB:", error);
             return { success: false, error: "Failed to save photo explane." };
         }
-        return { success: true, message: "upload complete." };
+        return { success: true, message: "upload complete.", file_url: fileUrl, file_desc: description };
     }
 }
 
