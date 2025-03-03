@@ -49,8 +49,16 @@ class User {
     };
     if(client) {
       try {
-        const response = await UserStorage.save(client);
-        res.success = response.status;
+        const user = await UserStorage.getUserInfo(client.id);
+        if(!user) {
+          const response = await UserStorage.save(client);
+          res.success = response.status;
+        }
+        else {
+          response.success = false;
+          response.status = 'NG';
+          response.message = "존재하는 아이디입니다.";
+        }
       } catch (err) {
         res.success = false;
         res.status = 'NG';

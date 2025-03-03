@@ -14,10 +14,38 @@ class UserStorage {
   }
 
   static async save(userInfo) {
+    let personid;
+    try {
+      const birthDate = new Date(userInfo.birth).toISOString().slice(0, 10);
+      const selectSessionQuery = `SELECT person_id FROM persons WHERE name = ? AND date_of_birth = ?;`;
+      let [rows] = await db.execute(selectSessionQuery, [userInfo.name, birthDate]);
+      if (rows.length > 0) {
+        personid = rows[0].person_id;
+      } else {
+          const insertSessionQuery = `insert into persons(name, date_of_birth, gender, 
+            occupation, health_info, blood_type, nbti, favorite_color, season, personality, 
+            face_photo_url, email, phone_number, nationality, address, hometown, biography, status  )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+          await db.execute(insertSessionQuery, [userInfo.name, birthDate
+            , null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]);
+
+          [rows] = await db.execute(selectSessionQuery, [userInfo.name, birthDate]);
+          if (rows.length > 0) {
+            personid = rows[0].person_id;
+          }
+          else {
+            console.error("Error fetching or creating persons.");
+            return { success: false, error: "Failed to handle persons." };
+        }
+      }
+    } catch (error) {
+        throw new Error(error);
+    }
+
     try {
       await db.execute(
-        "INSERT INTO users(id, name, psword, birth) VALUES(?, ?, ?, ?)",
-        [userInfo.id, userInfo.name, userInfo.password, userInfo.birth]
+        "INSERT INTO users(id, name, psword, birth, person_id) VALUES(?, ?, ?, ?, ?)",
+        [userInfo.id, userInfo.name, userInfo.password, userInfo.birth, personid]
       );
       return { success: true };
     } catch (err) {
