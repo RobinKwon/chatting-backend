@@ -668,3 +668,16 @@
 2025-04-05 16:43:06 [CHF] info : POST /login 200 Response: true Login successful
 2025-04-05 16:54:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
 2025-04-05 16:54:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 20:57:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 20:58:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 21:05:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 21:05:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 21:05:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 21:05:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 21:05:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 21:05:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 21:05:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 21:05:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 23:16:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 23:17:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 23:25:06 [CHF] info : POST /login 200 Response: true Login successful

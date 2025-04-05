@@ -1,5 +1,3 @@
-import express from 'express';
-import http from 'http';
 import WebSocket from 'ws';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import OpenAI from 'openai';
@@ -10,34 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 import FormData from 'form-data';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config();
-
-// Express 앱 및 HTTP 서버 설정
-const app = express();
-
-// CORS 설정
-app.use(cors({
-  origin: '*', // 개발 환경에서는 모든 도메인 허용
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-}));
-
-// 정적 파일 제공 설정
-const frontendPath = path.join(dirname(dirname(dirname(__dirname))), 'Frontend', 'public');
-app.use(express.static(frontendPath));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// 뷰 엔진 설정
-app.set('view engine', 'html');
-app.engine('html', (path, options, callback) => {
-  fs.readFile(path, 'utf-8', callback);
-});
 
 // AWS 및 OpenAI 설정
 const s3Client = new S3Client({
@@ -52,72 +27,75 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ 
-  server,
-  path: '/ws',  // WebSocket 엔드포인트 경로 설정
-  perMessageDeflate: false  // 성능 향상을 위해 압축 비활성화
-});
-
 // 임시 파일 저장 디렉토리 생성
 const tempDir = path.join(__dirname, 'temp');
 if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir);
 }
 
-// WebSocket 연결 처리
-wss.on('connection', (ws) => {
-  console.log('클라이언트가 연결되었습니다');
-  
-  let audioBuffer = Buffer.from([]);
-  let videoBuffer = Buffer.from([]);
-  let sessionId = uuidv4();
-  
-  ws.on('message', async (message) => {
-    try {
-      const data = JSON.parse(message);
-      
-      if (data.type === 'start_session') {
-        sessionId = uuidv4();
-        console.log(`새 세션 시작: ${sessionId}`);
-        ws.send(JSON.stringify({ type: 'session_started', sessionId }));
-      } 
-      else if (data.type === 'audio_data') {
-        const chunk = Buffer.from(data.data, 'base64');
-        audioBuffer = Buffer.concat([audioBuffer, chunk]);
+// WebSocket 서버 설정 및 연결 처리 함수
+export function setupWebSocket(server) {
+  const wss = new WebSocket.Server({ 
+    server,
+    path: '/ws',  // WebSocket 엔드포인트 경로 설정
+    perMessageDeflate: false
+  });
+
+  wss.on('connection', (ws) => {
+    console.log('클라이언트가 연결되었습니다');
+    
+    let audioBuffer = Buffer.from([]);
+    let videoBuffer = Buffer.from([]);
+    let sessionId = uuidv4();
+    
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message);
         
-        // 데이터가 충분하면 처리
-        if (data.isComplete || audioBuffer.length > 1024 * 1024) {
-          await processAudioData(audioBuffer, sessionId, ws);
-          audioBuffer = Buffer.from([]);
+        if (data.type === 'start_session') {
+          sessionId = uuidv4();
+          console.log(`새 세션 시작: ${sessionId}`);
+          ws.send(JSON.stringify({ type: 'session_started', sessionId }));
+        } 
+        else if (data.type === 'audio_data') {
+          const chunk = Buffer.from(data.data, 'base64');
+          audioBuffer = Buffer.concat([audioBuffer, chunk]);
+          
+          if (data.isComplete || audioBuffer.length > 1024 * 1024) {
+            await processAudioData(audioBuffer, sessionId, ws);
+            audioBuffer = Buffer.from([]);
+          }
+        } 
+        else if (data.type === 'video_data') {
+          const chunk = Buffer.from(data.data, 'base64');
+          videoBuffer = Buffer.concat([videoBuffer, chunk]);
+          
+          if (data.isComplete || videoBuffer.length > 5 * 1024 * 1024) {
+            await processVideoData(videoBuffer, sessionId, ws);
+            videoBuffer = Buffer.from([]);
+          }
         }
-      } 
-      else if (data.type === 'video_data') {
-        const chunk = Buffer.from(data.data, 'base64');
-        videoBuffer = Buffer.concat([videoBuffer, chunk]);
-        
-        if (data.isComplete || videoBuffer.length > 5 * 1024 * 1024) {
-          await processVideoData(videoBuffer, sessionId, ws);
+        else if (data.type === 'end_session') {
+          console.log(`세션 종료: ${sessionId}`);
+          ws.send(JSON.stringify({ type: 'session_ended', sessionId }));
+          audioBuffer = Buffer.from([]);
           videoBuffer = Buffer.from([]);
         }
+      } catch (error) {
+        console.error('메시지 처리 오류:', error);
+        ws.send(JSON.stringify({ type: 'error', message: '서버 오류가 발생했습니다' }));
       }
-      else if (data.type === 'end_session') {
-        console.log(`세션 종료: ${sessionId}`);
-        ws.send(JSON.stringify({ type: 'session_ended', sessionId }));
-        audioBuffer = Buffer.from([]);
-        videoBuffer = Buffer.from([]);
-      }
-    } catch (error) {
-      console.error('메시지 처리 오류:', error);
-      ws.send(JSON.stringify({ type: 'error', message: '서버 오류가 발생했습니다' }));
-    }
+    });
+    
+    ws.on('close', () => {
+      console.log('클라이언트 연결이 종료되었습니다');
+      // 필요 시 임시 파일 정리 로직 추가
+    });
   });
-  
-  ws.on('close', () => {
-    console.log('클라이언트 연결이 종료되었습니다');
-    // 필요 시 임시 파일 정리 로직 추가
-  });
-});
+
+  console.log('WebSocket 서버가 /ws 경로에 설정되었습니다.');
+  return wss; // 필요시 wss 객체 반환
+}
 
 // 오디오 데이터 처리 함수
 async function processAudioData(buffer, sessionId, ws) {
@@ -197,69 +175,125 @@ async function uploadToS3(filePath, key) {
 
 // OpenAI API를 사용한 오디오 트랜스크립션 함수
 async function transcribeAudio(filePath) {
-  const formData = new FormData();
-  formData.append('file', fs.createReadStream(filePath));
-  formData.append('model', 'whisper-1');
-  
-  const response = await openai.createTranscription(formData);
-  return response.data;
+  try {
+    // 파일 스트림 생성 확인
+    const fileStream = fs.createReadStream(filePath);
+    if (!fileStream) {
+        throw new Error('파일 스트림 생성 실패');
+    }
+
+    // Whisper API 호출
+    const transcription = await openai.audio.transcriptions.create({
+        file: fileStream,
+        model: "whisper-1",
+    });
+
+    // 결과 반환
+    return transcription; // Whisper API는 text 필드를 포함한 객체를 반환합니다
+  } catch (error) {
+      console.error('오디오 트랜스크립션 오류:', error);
+      // 오류 세부 정보 로깅
+      if (error.response) {
+          console.error('API 응답 데이터:', error.response.data);
+          console.error('API 응답 상태:', error.response.status);
+          console.error('API 응답 헤더:', error.response.headers);
+      } else if (error.request) {
+          console.error('API 요청 데이터:', error.request);
+      } else {
+          console.error('Error 메시지:', error.message);
+      }
+      throw new Error('오디오 트랜스크립션 중 오류 발생'); // 보다 구체적인 오류 메시지 또는 처리
+  }
 }
 
 // 비디오 프레임 추출 함수 (FFmpeg 필요)
 async function extractVideoFrame(videoPath) {
   const outputPath = videoPath.replace('.webm', '_frame.jpg');
   
+  // FFmpeg 경로 설정 (환경에 맞게 수정 필요)
+  const ffmpegPath = 'ffmpeg'; // 시스템 PATH에 ffmpeg가 설정되어 있다고 가정
+
   return new Promise((resolve, reject) => {
     const { exec } = require('child_process');
-    exec(`ffmpeg -i ${videoPath} -vframes 1 ${outputPath}`, (error) => {
+    
+    // FFmpeg 명령어 보안 강화 (입력 값 이스케이프 등 고려)
+    const command = `${ffmpegPath} -i "${videoPath}" -vframes 1 "${outputPath}"`;
+    
+    exec(command, (error, stdout, stderr) => {
       if (error) {
-        reject(error);
+        console.error(`FFmpeg 실행 오류: ${error.message}`);
+        console.error(`FFmpeg stderr: ${stderr}`);
+        reject(new Error(`비디오 프레임 추출 실패: ${error.message}`));
         return;
       }
+      if (!fs.existsSync(outputPath)) {
+        console.error(`FFmpeg 실행 후 출력 파일 없음: ${outputPath}`);
+        console.error(`FFmpeg stdout: ${stdout}`);
+        console.error(`FFmpeg stderr: ${stderr}`);
+        reject(new Error('비디오 프레임 추출 실패: 출력 파일 생성 안됨'));
+        return;
+      }
+      console.log(`비디오 프레임 추출 성공: ${outputPath}`);
       resolve(outputPath);
     });
   });
 }
 
 // [수정됨] OpenAI API를 사용한 비디오 프레임 분석 함수
-// 기존의 createImageAnalysis 메서드는 존재하지 않으므로 플레이스홀더를 사용합니다.
 async function analyzeVideoFrame(imagePath) {
-  const imageBase64 = fs.readFileSync(imagePath, 'base64');
-  // 실제 API 호출 대신 임시 메시지 반환
-  return `이미지 분석 결과: 이미지가 성공적으로 업로드되었습니다. (이미지 데이터 길이: ${imageBase64.length})`;
+  try {
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+    const mimeType = 'image/jpeg'; // 추출된 프레임이 jpg라고 가정
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-vision-preview", // 또는 "gpt-4o" 사용 가능
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "이 이미지에 대해 설명해주세요." },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:${mimeType};base64,${base64Image}`,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    });
+
+    if (!response.choices || !response.choices[0]?.message?.content) {
+      throw new Error('API 응답에서 설명을 찾을 수 없습니다.');
+    }
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('비디오 프레임 분석 오류:', error);
+    return '이미지 분석 중 오류가 발생했습니다.'; // 오류 발생 시 기본 메시지 반환
+  }
 }
 
 // OpenAI API를 사용한 AI 응답 생성 함수
 async function generateAIResponse(userMessage) {
-  const response = await openai.createChatCompletion({
-    model: "gpt-4",
-    messages: [
-      { role: "system", content: "당신은 친절하고 도움이 되는 AI 친구입니다. 자연스럽고 공감적인 대화를 해보세요." },
-      { role: "user", content: userMessage }
-    ],
-    max_tokens: 500
-  });
-  
-  return response.data.choices[0].message.content;
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // 최신 및 추천 모델
+      messages: [
+        { role: "system", content: "당신은 친절하고 도움이 되는 AI 친구입니다. 자연스럽고 공감적인 대화를 해보세요." },
+        { role: "user", content: userMessage }
+      ],
+      max_tokens: 500, // 응답 최대 길이 설정
+      temperature: 0.7 // 창의성 조절 (0.0 ~ 1.0)
+    });
+    
+    if (!response.choices || !response.choices[0]?.message?.content) {
+      throw new Error('API 응답에서 내용을 찾을 수 없습니다.');
+    }
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('AI 응답 생성 오류:', error);
+    return 'AI 응답 생성 중 오류가 발생했습니다.'; // 오류 발생 시 기본 메시지 반환
+  }
 }
-
-// 기본 라우트
-app.get('/', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'vchat.html'));
-});
-
-app.get('/vchat', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'vchat.html'));
-});
-
-// 서버 시작
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`서버가 포트 ${PORT}에서 실행 중입니다`);
-});
-
-export default {
-  app,
-  server,
-  wss
-};
