@@ -621,3 +621,50 @@
 2025-03-04 00:33:02 [CHF] info : POST /login 200 Response: true Login successful
 2025-03-04 00:33:02 [CHF] info : POST /getbirth 200 Response: true Mon Mar 03 2025 12:00:00 GMT+0900 (대한민국 표준시)
 2025-03-04 00:33:02 [CHF] info : POST /childhoodfriend 200 Response: true 
+2025-03-30 16:23:00 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:02:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:04:06 [CHF] info : POST /login 200 Response: false 존재하지 않는 아이디입니다.
+2025-04-05 16:04:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:12:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:12:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:18:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:18:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:22:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:22:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:22:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:25:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:25:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:28:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:28:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:28:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:28:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:28:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:28:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:28:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:31:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:31:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:31:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:31:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:31:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:31:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:31:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:33:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:33:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:33:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:33:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:33:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:33:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:33:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:33:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:39:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:40:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:40:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:40:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:40:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:40:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:40:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:40:06 [CHF] info : GET / 304 "홈 화면으로 이동"
+2025-04-05 16:43:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:43:06 [CHF] info : POST /login 200 Response: true Login successful
+2025-04-05 16:54:06 [CHF] info : 3000 포트에서 서버가 가동되었습니다.
+2025-04-05 16:54:06 [CHF] info : POST /login 200 Response: true Login successful

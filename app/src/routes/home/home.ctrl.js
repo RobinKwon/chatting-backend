@@ -4,6 +4,7 @@ import S3_Bucket from "../../models/S3Bucket.js";
 import logger from "../../config/logger.js";
 import User from "../../models/User.js";
 import Friend from "../../models/Friend.js";
+import session from "../../models/session.js"; //250310_2326:session model import
 
 const output = {
   home: (req, res) => {
@@ -19,6 +20,12 @@ const output = {
   register: (req, res) => {
     logger.info(`GET /register 304 "회원가입 화면으로 이동"`);
     res.render("home/register");
+  },
+
+  //250311_0625:vchat 연결 페이지 (예: vchat.html)
+  vchat: (req, res) => {
+    logger.info(`GET /vchat 304 "vchat 화면으로 이동"`);
+    res.render("home/vchat");
   },
 };
 
@@ -91,6 +98,35 @@ const process = {
     };
     log(response, url);
     return res.status(url.status).json(response);
+  },
+
+  //250310_2326:프론트엔드에서 세션 생성을 호출할 수 있도록 하는 엔드포인트
+  createSession: async (req, res) => {
+    try {
+      // session.create는 Lambda 이벤트 객체 형태를 기대하므로, req.body를 문자열로 감싸 전달합니다.
+      const event = { body: JSON.stringify(req.body) };
+      const response = await session.create(event);
+      res.status(response.statusCode)
+          .set(response.headers)
+          .json(JSON.parse(response.body));
+    } catch (error) {
+      console.error("Session creation error", error);
+      res.status(500).json({ error: "Session creation error" });
+    }
+  },
+
+  //250310_2326:프론트엔드에서 세션 종료를 호출할 수 있도록 하는 엔드포인트
+  endSession: async (req, res) => {
+    try {
+      const event = { body: JSON.stringify(req.body) };
+      const response = await session.end(event);
+      res.status(response.statusCode)
+          .set(response.headers)
+          .json(JSON.parse(response.body));
+    } catch (error) {
+      console.error("Session end error", error);
+      res.status(500).json({ error: "Session end error" });
+    }
   },
 };
 

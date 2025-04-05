@@ -4,8 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import db from "../config/db.js";
 import "dotenv/config";
 
+//const AWS = require('aws-sdk');
 import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+
 import mime from 'mime-types';
 import fs from "fs";
 import path from "path";
@@ -19,7 +21,6 @@ const openaiClient = new OpenAI({
 
 //const app = express();
 //const upload = multer({ dest: 'uploads/' });
-
 // ✅ AWS S3 설정 (v3)
 const s3 = new S3Client({
     region: process.env.AWS_REGION,
