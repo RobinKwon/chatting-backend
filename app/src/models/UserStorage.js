@@ -1,7 +1,7 @@
 "use strict";
 
-import db from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
+import db from "../config/db.js";
 
 class UserStorage {
   static async getUserInfo(id) {
@@ -49,7 +49,7 @@ class UserStorage {
       );
       return { success: true };
     } catch (err) {
-      throw new Error(err);
+      throw new Error(err); 
     }
   }
 

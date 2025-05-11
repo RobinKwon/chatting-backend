@@ -4,10 +4,15 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import db from "../config/db.js";
 import { v4 as uuidv4 } from 'uuid';
 import FormData from 'form-data';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import S3Bucket from './S3Bucket.js';
+import { exec } from 'child_process';
+import { PassThrough } from 'stream';
+import { Upload } from '@aws-sdk/lib-storage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,61 +40,157 @@ if (!fs.existsSync(tempDir)) {
 
 // WebSocket 서버 설정 및 연결 처리 함수
 export function setupWebSocket(server) {
-  const wss = new WebSocket.Server({ 
+  const wss = new WebSocket.Server({
     server,
-    path: '/ws',  // WebSocket 엔드포인트 경로 설정
+    path: '/ws',
     perMessageDeflate: false
   });
 
   wss.on('connection', (ws) => {
     console.log('클라이언트가 연결되었습니다');
-    
+
     let audioBuffer = Buffer.from([]);
-    let videoBuffer = Buffer.from([]);
-    let sessionId = uuidv4();
-    
+    let videoHeaderBuffer = null;
+    // Streaming S3 업로드용
+    let videoUploadStream = null;
+    let videoUploader = null;
+    // S3 업로드된 비디오 URL
+    let videoS3Url = null;
+
+    let currentSessionId = null;
+    let currentUserId = null;   // userId를 저장할 변수 추가
+
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message);
-        
+        if(data.type === 'video_data' || data.type === 'audio_data') { 
+          console.log(`Received message type=${data.type}, userId=${currentUserId}, sessionId=${currentSessionId}`);
+        }
+        else {
+          console.log('Received message:', data); // 수신 메시지 로깅 추가
+        }
+
         if (data.type === 'start_session') {
-          sessionId = uuidv4();
-          console.log(`새 세션 시작: ${sessionId}`);
-          ws.send(JSON.stringify({ type: 'session_started', sessionId }));
-        } 
+          // 세션 ID 생성 및 userId 저장
+          currentSessionId = uuidv4();
+          currentUserId = data.userId; // 클라이언트에서 보낸 userId 저장
+
+          if (!currentUserId) {
+             console.error('userId is missing in start_session message');
+             ws.send(JSON.stringify({ type: 'error', message: '사용자 ID가 누락되었습니다.' }));
+             return; // userId 없으면 처리 중단
+          }
+
+          //250419_2242:session id를 DB에 등록
+          try {
+            const [result] = await db.execute(
+              "INSERT INTO chat_sessions (conversation_id, user_id, model_name, created_at) VALUES(?, ?, ?, NOW())",
+              [currentSessionId, currentUserId, "gpt-4o-mini"]
+            );
+          } catch (err) {
+            throw new Error(`DB 등록 실패: ${err.message}`);
+          }
+
+          console.log(`새 세션 시작: userId=${currentUserId}, sessionId=${currentSessionId}`);
+          // S3 멀티파트 업로드 스트림 초기화
+          const folderName = `video/${currentUserId}`;
+          const folderExists = await S3Bucket.checkFolderExists(folderName);
+          if (!folderExists) await S3Bucket.createFolder(folderName);
+          const s3Key = `${folderName}/${currentSessionId}.webm`;
+          // 업로드된 비디오 URL 구성
+          videoS3Url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+          videoUploadStream = new PassThrough();
+          videoUploader = new Upload({
+            client: s3Client,
+            params: { Bucket: process.env.S3_BUCKET_NAME, Key: s3Key, Body: videoUploadStream, ContentType: 'video/webm' }
+          });
+          videoUploader.done()
+            .then(() => console.log(`S3 streaming uploaded: ${s3Key}`))
+            .catch(err => console.error('S3 streaming error:', err));
+          ws.send(JSON.stringify({ type: 'session_started', sessionId: currentSessionId }));
+          return;
+        }
+        // --- 중요 ---
+        // 이후 audio_data, video_data, end_session 등 다른 메시지 처리 시
+        // 반드시 currentSessionId 와 currentUserId 가 유효한지 확인하고 사용해야 합니다.
         else if (data.type === 'audio_data') {
+           if (!currentUserId || !currentSessionId) {
+               console.warn('Received audio_data without active session/userId');
+               return; // 세션 또는 userId 없으면 처리 중단
+           }
           const chunk = Buffer.from(data.data, 'base64');
           audioBuffer = Buffer.concat([audioBuffer, chunk]);
-          
           if (data.isComplete || audioBuffer.length > 1024 * 1024) {
-            await processAudioData(audioBuffer, sessionId, ws);
+             // processAudioData 호출 시 userId도 전달 (필요한 경우)
+            await processAudioData(audioBuffer, currentUserId, currentSessionId, ws);
             audioBuffer = Buffer.from([]);
           }
-        } 
+        }
         else if (data.type === 'video_data') {
-          const chunk = Buffer.from(data.data, 'base64');
-          videoBuffer = Buffer.concat([videoBuffer, chunk]);
-          
-          if (data.isComplete || videoBuffer.length > 5 * 1024 * 1024) {
-            await processVideoData(videoBuffer, sessionId, ws);
-            videoBuffer = Buffer.from([]);
+          if (!currentUserId || !currentSessionId) {
+              console.warn('Received video_data without active session/userId');
+              return;
           }
+          const chunk = Buffer.from(data.data, 'base64');
+          // PassThrough를 통해 청크 단위로 S3에 업로드
+          if (videoUploadStream) videoUploadStream.write(chunk);
+          let bufferToProcess;
+          if (!videoHeaderBuffer) {
+              // Cluster ID: 0x1F43B675
+              const clusterId = Buffer.from([0x1F, 0x43, 0xB6, 0x75]);
+              const idx = chunk.indexOf(clusterId);
+              if (idx > 0) {
+                  // 헤더만 추출
+                  videoHeaderBuffer = chunk.slice(0, idx);
+              } else {
+                  // Cluster ID 없으면 전체 청크 저장
+                  videoHeaderBuffer = chunk;
+              }
+              // 첫 프레임 처리 시에는 전체 chunk 사용
+              bufferToProcess = chunk;
+          } else {
+              // 이후 청크는 헤더와 결합
+              bufferToProcess = Buffer.concat([videoHeaderBuffer, chunk]);
+          }
+          // 데이터를 처리 (에러는 로그만 남기고 무시)
+          processVideoData(bufferToProcess, currentUserId, currentSessionId, ws)
+            .catch(err => console.error('Video chunk 처리 중 오류:', err));
         }
         else if (data.type === 'end_session') {
-          console.log(`세션 종료: ${sessionId}`);
-          ws.send(JSON.stringify({ type: 'session_ended', sessionId }));
+           if (!currentSessionId || !currentUserId) {
+               console.warn('Received end_session without active session/userId');
+               return; // 세션 또는 userId 없으면 처리 중단
+           }
+          console.log(`세션 종료: sessionId=${currentSessionId}, userId=${currentUserId}`);
+          ws.send(JSON.stringify({ type: 'session_ended', sessionId: currentSessionId }));
+          // streaming 업로드 끝내기
+          if (videoUploadStream) { videoUploadStream.end(); videoUploadStream = null; videoUploader = null; }
           audioBuffer = Buffer.from([]);
-          videoBuffer = Buffer.from([]);
+          videoHeaderBuffer = null;
+          currentSessionId = null;
+          currentUserId = null;
         }
       } catch (error) {
         console.error('메시지 처리 오류:', error);
-        ws.send(JSON.stringify({ type: 'error', message: '서버 오류가 발생했습니다' }));
+        // 오류 발생 시에도 특정 세션 ID 전달 시도 (currentSessionId가 null이 아닐 경우)
+        const errorPayload = { type: 'error', message: '서버 오류가 발생했습니다' };
+        if (currentSessionId) {
+            errorPayload.sessionId = currentSessionId;
+        }
+        ws.send(JSON.stringify(errorPayload));
       }
     });
-    
+
     ws.on('close', () => {
-      console.log('클라이언트 연결이 종료되었습니다');
-      // 필요 시 임시 파일 정리 로직 추가
+      console.log(`클라이언트 연결 종료: sessionId=${currentSessionId}, userId=${currentUserId}`);
+      // 연결 종료 시 관련 리소스 정리 (예: 진행 중인 처리 중단, 임시 버퍼 초기화 등)
+      audioBuffer = Buffer.from([]);
+      videoHeaderBuffer = null;
+      if (videoUploadStream) {
+        videoUploadStream.end();
+        videoUploadStream = null;
+      }
+      // currentSessionId와 currentUserId는 이 스코프에서는 더 이상 유효하지 않음
     });
   });
 
@@ -98,83 +199,151 @@ export function setupWebSocket(server) {
 }
 
 // 오디오 데이터 처리 함수
-async function processAudioData(buffer, sessionId, ws) {
+async function processAudioData(buffer, userId, sessionId, ws) {
   const timestamp = Date.now();
-  const filename = `${sessionId}_audio_${timestamp}.webm`;
-  const tempFilePath = path.join(tempDir, filename);
-  
+  const tempFilename = `${sessionId}_${userId}_audio_${timestamp}.webm`;
+  const tempFilePath = path.join(tempDir, tempFilename);
+
   try {
-    fs.writeFileSync(tempFilePath, buffer);
-    
-    const s3Key = `audio/${filename}`;
-    await uploadToS3(tempFilePath, s3Key);
-    
-    const transcription = await transcribeAudio(tempFilePath);
-    const aiResponse = await generateAIResponse(transcription.text);
-    
+    // 동일 세션에서 기존 파일이 있으면 append, 없으면 새로 생성
+    if (fs.existsSync(tempFilePath)) {
+      fs.appendFileSync(tempFilePath, buffer);
+    } else {
+      fs.writeFileSync(tempFilePath, buffer);
+    }
+
+    const s3Url = await S3Bucket.uploadStreamData(tempFilePath, 'audio', userId, sessionId);
+    console.log(`Audio uploaded to S3 for user ${userId}: ${s3Url}`);
+
+    const transcription = await transcribeAudio(tempFilePath, userId); // STT 처리
+    // transcription 객체에 text 필드가 있는지 확인
+    const transcriptionText = transcription && transcription.text ? transcription.text : '';
+    const aiResponse = await generateAIResponse(transcriptionText, userId); // AI 응답 생성
+
     ws.send(JSON.stringify({
       type: 'audio_processed',
-      s3Key,
-      transcription: transcription.text,
+      s3Url: s3Url, // S3 URL 전송
+      transcription: transcriptionText, // STT 결과 전송
       aiResponse
     }));
-    
-    fs.unlinkSync(tempFilePath);
+
   } catch (error) {
-    console.error('오디오 처리 오류:', error);
-    ws.send(JSON.stringify({ type: 'error', message: '오디오 처리 중 오류가 발생했습니다' }));
+    console.error(`오디오 처리 오류 (userId: ${userId}):`, error);
+    ws.send(JSON.stringify({ type: 'error', message: '오디오 처리 중 오류가 발생했습니다', sessionId }));
+  } finally {
+     // 임시 파일 삭제 (finally 블록에서 처리)
+     if (fs.existsSync(tempFilePath)) {
+         try {
+             fs.unlinkSync(tempFilePath);
+             console.log(`Deleted temp audio file: ${tempFilePath}`);
+         } catch (unlinkError) {
+             console.error(`Error deleting temp audio file ${tempFilePath}:`, unlinkError);
+         }
+     } else {
+         console.log(`Temp audio file not found for deletion: ${tempFilePath}`);
+     }
   }
 }
 
 // 비디오 데이터 처리 함수
-async function processVideoData(buffer, sessionId, ws) {
-  const timestamp = Date.now();
-  const filename = `${sessionId}_video_${timestamp}.webm`;
-  const tempFilePath = path.join(tempDir, filename);
-  
+async function processVideoData(buffer, userId, sessionId, ws) {
+  // 임시 파일명 생성 (프레임 추출용)
+  const tempFilename = `${userId}_${sessionId}_video_temp.webm`;
+  const tempFilePath = path.join(tempDir, tempFilename);
+  let frameFilePath = null;
+
   try {
-    fs.writeFileSync(tempFilePath, buffer);
+    // 프레임 분석용 임시 파일에 버퍼를 append
+    fs.writeFileSync(tempFilePath, buffer, { flag: 'a' });
     
-    const s3Key = `video/${filename}`;
-    await uploadToS3(tempFilePath, s3Key);
-    
-    const frameFilePath = await extractVideoFrame(tempFilePath);
-    const videoAnalysis = await analyzeVideoFrame(frameFilePath);
-    
+    // 이미 setupWebSocket에서 PassThrough를 통한 S3 업로드가 수행되므로,
+    // 여기서는 객체 URL을 계산하여 사용
+    const s3Key = `video/${userId}/${sessionId}.webm`;
+    const s3Url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+
+    // 프레임 추출 및 분석
+    frameFilePath = await extractVideoFrame(tempFilePath);
+    const videoAnalysis = await analyzeVideoFrame(frameFilePath, userId);
+
+    // ---------------------------------------------
+    // 4. Save the chat messages to the database
+    // ---------------------------------------------
+    try {
+      // MySQL (RDS)에 업로드 정보 저장
+      const [result] = await db.execute(
+          `INSERT INTO media_files (user_id, conversation_id, s3_key, file_name, file_type, file_size, description) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+              userId,
+              sessionId,
+              s3Url,
+              tempFilename,
+              'video',
+              fs.statSync(tempFilePath).size,
+              videoAnalysis             // 설명 (옵션)
+          ]
+      );
+    }
+    catch (error) {
+        console.error("Error saving upload image info to DB:", error);
+        return { success: false, error: "Failed to save Image info." };
+    }
+
+    // ---------------------------------------------
+    // 4. Save the chat messages to the database
+    // ---------------------------------------------
+    try {
+        // Save each user message as a 'question'
+        if (videoAnalysis !== '') {
+            //let user_msg = parsedMessages.toString().replace(/\r?\n/g, ' ');
+            const insertUserMsgQuery = `
+                INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
+                VALUES (?, ?, ?, ?);
+            `;
+            await db.query(insertUserMsgQuery, [sessionId, userId, 'question', videoAnalysis]);
+        }
+
+        // Save each user message as a 'question'
+        // if(description.length >= 1) {
+        //     let ans_msg = description.replace(/\r?\n/g, ' ');
+        //     const insertAnswerMsgQuery = `
+        //         INSERT INTO chat_messages (conversation_id, user_id, q_a, message)
+        //         VALUES (?, ?, ?, ?);
+        //     `;
+        //     await db.query(insertAnswerMsgQuery, [sessionId, userId, 'answer', ans_msg]);
+        // }
+    } catch (error) {
+        console.error("Error saving photo explane to DB:", error);
+        return { success: false, error: "Failed to save photo explane." };
+    }
+    //return { success: true, message: "upload complete.", file_url: fileUrl, file_desc: description };
+
+    // 프레임 이미지 읽기
+    let frameImageData = null;
+    if (frameFilePath) {
+      const frameBuffer = fs.readFileSync(frameFilePath);
+      frameImageData = `data:image/jpeg;base64,${frameBuffer.toString('base64')}`;
+    }
+
     ws.send(JSON.stringify({
       type: 'video_processed',
-      s3Key,
-      videoAnalysis
+      s3Url,
+      videoAnalysis,
+      frameImage: frameImageData
     }));
-    
-    fs.unlinkSync(tempFilePath);
-    if (fs.existsSync(frameFilePath)) {
-      fs.unlinkSync(frameFilePath);
-    }
+
   } catch (error) {
-    console.error('비디오 처리 오류:', error);
-    ws.send(JSON.stringify({ type: 'error', message: '비디오 처리 중 오류가 발생했습니다' }));
+    console.error(`비디오 처리 오류 (userId: ${userId}):`, error);
+    ws.send(JSON.stringify({ type: 'error', message: '비디오 처리 중 오류가 발생했습니다', sessionId }));
+  } finally {
+     // 임시 파일 정리
+     if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+     if (frameFilePath && fs.existsSync(frameFilePath)) fs.unlinkSync(frameFilePath);
   }
 }
 
-// S3에 파일 업로드 함수
-async function uploadToS3(filePath, key) {
-  const fileContent = fs.readFileSync(filePath);
-  
-  const params = {
-    Bucket: process.env.AWS_S3_BUCKET,
-    Key: key,
-    Body: fileContent
-  };
-  
-  await s3Client.send(new PutObjectCommand(params));
-  console.log(`S3에 업로드 완료: ${key}`);
-  
-  return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-}
-
 // OpenAI API를 사용한 오디오 트랜스크립션 함수
-async function transcribeAudio(filePath) {
+async function transcribeAudio(filePath, userId) {
   try {
     // 파일 스트림 생성 확인
     const fileStream = fs.createReadStream(filePath);
@@ -211,28 +380,35 @@ async function extractVideoFrame(videoPath) {
   const outputPath = videoPath.replace('.webm', '_frame.jpg');
   
   // FFmpeg 경로 설정 (환경에 맞게 수정 필요)
-  const ffmpegPath = 'ffmpeg'; // 시스템 PATH에 ffmpeg가 설정되어 있다고 가정
+  const ffmpegPath = path.join('D:', 'ffmpeg-2025-04-17-git-7684243fbe-full_build', 'bin', 'ffmpeg.exe');
 
   return new Promise((resolve, reject) => {
-    const { exec } = require('child_process');
+    // FFmpeg 명령어 개선 - WebM 파일 처리를 위한 옵션 추가
+    const command = `"${ffmpegPath}" -y -fflags +genpts -i "${videoPath}" -vf "select=eq(n\\,0)" -frames:v 1 -q:v 2 "${outputPath}"`;
     
-    // FFmpeg 명령어 보안 강화 (입력 값 이스케이프 등 고려)
-    const command = `${ffmpegPath} -i "${videoPath}" -vframes 1 "${outputPath}"`;
+    console.log('Executing FFmpeg command:', command);
     
     exec(command, (error, stdout, stderr) => {
+      // FFmpeg stderr는 정보용으로만 로그
+      //if (stderr) console.log('FFmpeg stderr (info):', stderr);   //250420_2233:no console log ffmpeg stderr
+      // 에러 발생 시 프레임 추출을 스킵하고 null 반환
       if (error) {
-        console.error(`FFmpeg 실행 오류: ${error.message}`);
-        console.error(`FFmpeg stderr: ${stderr}`);
-        reject(new Error(`비디오 프레임 추출 실패: ${error.message}`));
-        return;
+        console.warn('FFmpeg parsing failed, skipping frame extraction:', error.message);
+        return resolve(null);
       }
-      if (!fs.existsSync(outputPath)) {
-        console.error(`FFmpeg 실행 후 출력 파일 없음: ${outputPath}`);
-        console.error(`FFmpeg stdout: ${stdout}`);
-        console.error(`FFmpeg stderr: ${stderr}`);
-        reject(new Error('비디오 프레임 추출 실패: 출력 파일 생성 안됨'));
-        return;
+
+      // 파일 크기 확인, 비어있으면 스킵
+      try {
+        const stats = fs.statSync(outputPath);
+        if (stats.size === 0) {
+          console.warn('Extracted frame file is empty, skipping frame extraction');
+          return resolve(null);
+        }
+      } catch (statError) {
+        console.warn('Frame file check failed, skipping frame extraction:', statError.message);
+        return resolve(null);
       }
+
       console.log(`비디오 프레임 추출 성공: ${outputPath}`);
       resolve(outputPath);
     });
@@ -240,14 +416,14 @@ async function extractVideoFrame(videoPath) {
 }
 
 // [수정됨] OpenAI API를 사용한 비디오 프레임 분석 함수
-async function analyzeVideoFrame(imagePath) {
+async function analyzeVideoFrame(imagePath, userId) {
   try {
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
     const mimeType = 'image/jpeg'; // 추출된 프레임이 jpg라고 가정
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4-vision-preview", // 또는 "gpt-4o" 사용 가능
+      model: "gpt-4o-mini", //"gpt-4-vision-preview", // 또는 "gpt-4o" 사용 가능
       messages: [
         {
           role: "user",
@@ -276,16 +452,18 @@ async function analyzeVideoFrame(imagePath) {
 }
 
 // OpenAI API를 사용한 AI 응답 생성 함수
-async function generateAIResponse(userMessage) {
+async function generateAIResponse(userMessage, userId) {
   try {
+    console.log(`Generating AI response for user ${userId} with message: ${userMessage}`);
+    // 필요하다면 userId를 사용하여 사용자별 context나 프롬프트 조정
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // 최신 및 추천 모델
+      model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "당신은 친절하고 도움이 되는 AI 친구입니다. 자연스럽고 공감적인 대화를 해보세요." },
+        { role: "system", content: `당신은 사용자 ${userId}의 친절한 AI 친구입니다.` }, // userId 활용 예시
         { role: "user", content: userMessage }
       ],
-      max_tokens: 500, // 응답 최대 길이 설정
-      temperature: 0.7 // 창의성 조절 (0.0 ~ 1.0)
+      max_tokens: 500,
+      temperature: 0.7
     });
     
     if (!response.choices || !response.choices[0]?.message?.content) {
@@ -293,7 +471,7 @@ async function generateAIResponse(userMessage) {
     }
     return response.choices[0].message.content;
   } catch (error) {
-    console.error('AI 응답 생성 오류:', error);
-    return 'AI 응답 생성 중 오류가 발생했습니다.'; // 오류 발생 시 기본 메시지 반환
+    console.error(`AI 응답 생성 오류 (userId: ${userId}):`, error);
+    return 'AI 응답 생성 중 오류가 발생했습니다.';
   }
 }

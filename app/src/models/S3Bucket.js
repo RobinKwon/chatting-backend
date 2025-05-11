@@ -29,6 +29,7 @@ const s3 = new S3Client({
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
 });
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME; // 버킷 이름 변수화
 
 class S3_Bucket {
     constructor(body) {
@@ -105,10 +106,10 @@ class S3_Bucket {
     }    
 
     // ✅ S3에 폴더가 존재하는지 확인
-    async checkFolderExists(folderName) {
+    static async checkFolderExists(folderName) {
         try {
             const command = new HeadObjectCommand({
-                Bucket: process.env.S3_BUCKET_NAME,
+                Bucket: S3_BUCKET_NAME,
                 Key: `${folderName}/` // 폴더 경로
             });
 
@@ -126,10 +127,10 @@ class S3_Bucket {
     }
 
     // ✅ S3에 폴더 생성 (빈 오브젝트 업로드)
-    async createFolder(folderName) {
+    static async createFolder(folderName) {
         try {
             const command = new PutObjectCommand({
-                Bucket: process.env.S3_BUCKET_NAME,
+                Bucket: S3_BUCKET_NAME,
                 Key: `${folderName}/`, // 폴더처럼 사용 (빈 파일 업로드)
                 Body: ""
             });
@@ -140,6 +141,66 @@ class S3_Bucket {
             console.error("❌ S3 폴더 생성 오류:", error);
             throw error;
         }
+    }
+
+    // --- 스트림 데이터 업로드 함수 (신규 추가) ---
+    static async uploadStreamData(inputData, streamType, userId, sessionId) {
+        if (!['audio', 'video'].includes(streamType)) {
+            throw new Error('Invalid streamType. Must be "audio" or "video".');
+        }
+
+        // ------------------------------
+        // 3. S3 업로드를 위한 설정 (Buffer 또는 filePath 모두 처리)
+        let Body;
+        let fileExtension = '.webm';
+        // inputData가 Buffer인지 파일 경로인지 판별
+        if (Buffer.isBuffer(inputData)) {
+            Body = inputData;
+        } else {
+            if (!fs.existsSync(inputData)) {
+                throw new Error('File not found for S3 upload');
+            }
+            Body = fs.createReadStream(inputData);
+            fileExtension = path.extname(inputData) || '.webm';
+        }
+        const folderName = `${streamType}/${userId}`;
+        const fileName = `${sessionId}${fileExtension}`;
+        const s3Key = `${folderName}/${fileName}`;
+        let s3Url;
+
+        console.log(`Attempting to upload stream data to S3: ${s3Key}`);
+        try {
+            // 📌 폴더 존재 여부 확인 후, 없으면 생성
+            const folderExists = await S3_Bucket.checkFolderExists(folderName);
+            if (!folderExists) {
+                await S3_Bucket.createFolder(folderName);
+            }
+            const uploadParams = {
+                Bucket: S3_BUCKET_NAME,
+                Key: s3Key,
+                Body: Body,
+                // 스트림 데이터는 보통 public-read 가 아닐 수 있음 (필요시 ACL 조정)
+                // ContentType은 자동으로 감지되거나 필요시 명시
+                ContentType: mime.lookup(fileExtension) || 'application/octet-stream'
+            };
+            const upload = new Upload({
+                client: s3,
+                params: uploadParams
+            });
+            const s3Response = await upload.done();
+            console.log(`✅ Stream data uploaded successfully to S3: ${s3Response.Key}`);
+            // S3 URL 반환 (Location 필드가 있을 경우 사용, 없으면 직접 구성)
+            s3Url = s3Response.Location || `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Response.Key}`;
+
+            if (Body && Body.destroy) {
+                Body.destroy();
+            }
+
+        } catch (error) {
+            console.error(`❌ Error uploading stream data to S3 (${s3Key}):`, error);
+            throw new Error(`Failed to upload stream data: ${error.message}`);
+        }
+        return s3Url;
     }
 
     async upload_image() {  //app.post('/upload', upload.single('image'), async (req, res) => 
@@ -160,11 +221,11 @@ class S3_Bucket {
         // ---------------------------------------------
         // 1. Check if a chat session exists for today
         // ---------------------------------------------
-        // We want to find a chat session for this user where the session’s created_at date is today.
-        // For example, we use MySQL’s DATE() function together with CURDATE().
+        // We want to find a chat session for this user where the session's created_at date is today.
+        // For example, we use MySQL's DATE() function together with CURDATE().
         let conversation_id;
         try {
-            // Get today’s date in the MySQL date format (YYYY-MM-DD)
+            // Get today's date in the MySQL date format (YYYY-MM-DD)
             //const today = new Date().toISOString().split('T')[0];
             const today = new Date().toLocaleDateString('ko-KR', { 
                 timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -232,16 +293,16 @@ class S3_Bucket {
         let fileUrl, description;        
         try {
             // 📌 폴더 존재 여부 확인 후, 없으면 생성
-            const folderExists = await this.checkFolderExists(folderName);
+            const folderExists = await S3_Bucket.checkFolderExists(folderName);
             if (!folderExists) {
-                await this.createFolder(folderName);
+                await S3_Bucket.createFolder(folderName);
             }
 
             // 📌 파일 업로드 설정
             const fileStream = fs.createReadStream(localFilePath);
             
             const uploadParams = {
-                Bucket: process.env.S3_BUCKET_NAME,
+                Bucket: S3_BUCKET_NAME,
                 Key: s3FilePath,
                 Body: fileStream,
                 ACL: "public-read",
@@ -254,7 +315,7 @@ class S3_Bucket {
                 params: uploadParams
             });
             const s3Response = await upload.done();
-            fileUrl = s3Response.Location;
+            fileUrl = s3Response.Location || `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Response.Key}`;
             
             // OpenAI Vision API 호출
             description = await this.getImageDescription(parsedMessages, localFilePath);    //client.userMessages
